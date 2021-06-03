@@ -61,6 +61,14 @@ license {
 	include '**/*.java'
 }
 
+jar {
+	manifest {
+		attributes(
+			"Automatic-Module-Name"       : "blue.endless.tinyevents"
+		);
+	}
+}
+
 test {
 	useJUnitPlatform();
 }
@@ -71,15 +79,15 @@ publishing {
 			from components.java;
 
 			groupId project.group;
-			artifactId "TinyBigNumbers";
+			artifactId "TinyEvents";
 			version project.version+versionSuffix;
 			artifact sourcesJar;
 			artifact javadocJar;
 			
 			pom {
-				name = "TinyBigNumbers";
-				description = "Oddball numeric record types for Java";
-				url = "https://github.com/falkreon/TinyBigNumbers";
+				name = "TinyEvents";
+				description = "Lots of events in a little package";
+				url = "https://github.com/falkreon/TinyEvents";
 				
 				developers {
 					developer {
@@ -91,16 +99,16 @@ publishing {
 				
 				licenses {
 					license {
-						name = "Mozilla Public License 2.0"
-						url = "http://mozilla.org/MPL/2.0/"
+						name = "MIT License"
+						url = "https://opensource.org/licenses/MIT"
 						distribution = "repo"
 					}
 				}
 				
 				scm {
-					url = "https://github.com/falkreon/TinyBigNumbers"
-					connection = "scm:git:git@github.com:falkreon/TinyBigNumbers.git"
-					developerConnection = "scm:git:git@github.com:falkreon/TinyBigNumbers.git"
+					url = "https://github.com/falkreon/TinyEvents"
+					connection = "scm:git:git@github.com:falkreon/TinyEvents.git"
+					developerConnection = "scm:git:git@github.com:falkreon/TinyEvents.git"
 				}
 			}
 		}
