@@ -22,28 +22,27 @@
  * SOFTWARE.
  */
 
-package blue.endless.tinyevents;
+package blue.endless.tinyevents.impl;
 
 import java.util.concurrent.Executor;
-
-import blue.endless.tinyevents.impl.RunnableEventListImpl;
+import java.util.function.Consumer;
 
 /**
- * Implementers of this type represent an event which requires no information to respond to. Handlers
- * for the event are registered as {@link java.lang.Runnable Runnable}s, hence the name of this
- * interface. To "provide" a RunnableEvent, you might do something like,
+ * Implementers of this type represent an event where handlers receive a single Object.
+ * Handlers for the event are registered as {@link java.util.function.Consumer Consumer}s, hence the name of this
+ * interface. To "provide" a ConsumerEvent, you might do something like,
  * 
  * <code><pre>
  * public class Foo {
- *   private RunnableEvent onFoo = RunnableEvent.create();
+ *   private ConsumerEvent<Integer> onFoo = ConsumerEvent.create();
  *   
- *   public RunnableEvent onFoo() {
+ *   public ConsumerEvent<Integer> onFoo() {
  *     return onFoo;
  *   }
  *   
- *   public void foo() {
+ *   public void foo(int value) {
  *     // (foo logic here)
- *     onFoo.fire();
+ *     onFoo.fire(value);
  *   }
  * }
  * </pre></code>
@@ -51,31 +50,33 @@ import blue.endless.tinyevents.impl.RunnableEventListImpl;
  * Note that generally Events fire after their corresponding logic, since they're best used for a
  * fait accomplis - where you can't change the triggering event, but you're responding to it.
  * 
- * See {@link #register(Runnable)} for more info on how to register and respond to events of this type.
+ * See {@link #register(Consumer)} for more info on how to register and respond to events of this type.
  */
-public interface RunnableEvent {
+public interface ConsumerEvent<T> {
 	
 	/**
 	 * Fire this event, causing all the registered handlers to be called. How the handlers
 	 * are scheduled, when they will run, and on what thread, depends on how they registered
 	 * and, if applicable, the Executor they were registered with.
+	 * @param t an object for event handlers to consume, presumably one important to the circumstances
+	 *          which triggered this event.
 	 */
-	void fire();
+	void fire(T t);
 	
 	/**
 	 * Registers an event handler to be run when this Event is fired.
 	 * 
 	 * <p>Note: Because of the semantics regarding lambdas, the following will not work:
 	 * <code><pre>
-	 * public void throwSomething() {
+	 * public void throwSomething(int val) {
 	 *   assert(false);
 	 * }
 	 * 
 	 * public static void main(String[] args) {
-	 *   RunnableEvent onRun = RunnableEvent.create();
+	 *   ConsumerEvent<Integer> onRun = ConsumerEvent<Integer>.create();
 	 *   onRun.register(this::throwSomething);
 	 *   onRun.unregister(this::throwSomething);
-	 *   onRun.fire();
+	 *   onRun.fire(1);
 	 * }
 	 * </pre></code>
 	 * 
@@ -85,24 +86,24 @@ public interface RunnableEvent {
 	 * for event systems. A workaround is to say instead,
 	 * 
 	 * <code><pre>
-	 * public void throwSomething() {
+	 * public void throwSomething(int val) {
 	 *   assert(false);
 	 * }
 	 * 
 	 * public static void main(String[] args) {
-	 *   RunnableEvent onRun = RunnableEvent.create();
+	 *   ConsumerEvent<Integer> onRun = ConsumerEvent.create();
 	 *   
-	 *   Runnable handler = this::throwSomething; //handler is always reference-equal to handler
+	 *   Consumer<Integer> handler = this::throwSomething; //handler is always reference-equal to handler
 	 *   
 	 *   onRun.register(handler);
 	 *   onRun.unregister(handler);
-	 *   onRun.fire();
+	 *   onRun.fire(1);
 	 * }
 	 * </pre></code>
 	 * 
-	 * @param handler The event handler to be invoked when {@link #fire()} is called.
+	 * @param handler
 	 */
-	void register(Runnable handler);
+	void register(Consumer<T> handler);
 	
 	/**
 	 *Registers an event handler to be run when this Event is fired.
@@ -110,14 +111,14 @@ public interface RunnableEvent {
 	 * @param handler The event handler to be invoked when {@link #fire()} is called.
 	 * @param key     A key which can be later used to unregister the event handler
 	 */
-	void register(Runnable handler, Object key);
+	void register(Consumer<T> handler, Object key);
 	
 	/**
 	 * Registers an event handler to be run when this Event is fired.
 	 * @param handler  The event handler to be invoked when {@link #fire()} is called.
 	 * @param executor The executor to run the handler on
 	 */
-	void register(Runnable handler, Executor executor);
+	void register(Consumer<T> handler, Executor executor);
 	
 	/**
 	 * Registers an event to be called when {@link #fire()} is called.
@@ -127,7 +128,7 @@ public interface RunnableEvent {
 	 * @param executor The executor to run the handler on
 	 * @param key      A key which can later be used to unregister the event handler
 	 */
-	void register(Runnable handler, Executor executor, Object key);
+	void register(Consumer<T> handler, Executor executor, Object key);
 	
 	/**
 	 * Unregisters and event handler. The object will be <em>reference-compared</em> (==) with
@@ -139,7 +140,8 @@ public interface RunnableEvent {
 	
 	
 	
-	public static RunnableEvent create() {
-		return new RunnableEventListImpl();
+	public static <T> ConsumerEvent<T> create() {
+		return new ConsumerEventListImpl<>();
 	}
+	
 }
