@@ -1,0 +1,143 @@
+buildscript {
+	repositories {
+		mavenCentral();
+		maven {
+			name = "sonatype";
+			url = "https://oss.sonatype.org/content/repositories/snapshots/";
+		}
+		maven {
+			url "https://plugins.gradle.org/m2/";
+		}
+	}
+}
+
+plugins {
+	id 'java';
+	id 'eclipse';
+	
+	id 'org.cadixdev.licenser' version '0.6.0';
+	
+	id 'maven-publish';
+	id 'signing';
+}
+
+
+group = "blue.endless";
+archivesBaseName = "TinyEvents";
+version = "1.0.0";
+
+repositories {
+	mavenCentral()
+}
+
+java {
+	toolchain {
+		languageVersion = JavaLanguageVersion.of(16)
+	}
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+	classifier = "sources"
+	from sourceSets.main.allSource
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+	classifier = "javadoc"
+	from javadoc.destinationDir
+}
+
+def versionSuffix = ''
+if (System.env.BUILD_NUMBER) {
+	versionSuffix = '-'+System.env.BUILD_NUMBER;
+}
+
+tasks.withType(JavaCompile) {
+	options.encoding = "UTF-8"
+}
+
+license {
+	//header = project.file('HEADER')
+	
+	include '**/*.java'
+}
+
+test {
+	useJUnitPlatform();
+}
+
+publishing {
+	publications {
+		mavenPrimary(MavenPublication) {
+			from components.java;
+
+			groupId project.group;
+			artifactId "TinyBigNumbers";
+			version project.version+versionSuffix;
+			artifact sourcesJar;
+			artifact javadocJar;
+			
+			pom {
+				name = "TinyBigNumbers";
+				description = "Oddball numeric record types for Java";
+				url = "https://github.com/falkreon/TinyBigNumbers";
+				
+				developers {
+					developer {
+						id = "falkreon"
+						name = "Isaac Ellingson"
+						email = "falkreon@gmail.com"
+					}
+				}
+				
+				licenses {
+					license {
+						name = "Mozilla Public License 2.0"
+						url = "http://mozilla.org/MPL/2.0/"
+						distribution = "repo"
+					}
+				}
+				
+				scm {
+					url = "https://github.com/falkreon/TinyBigNumbers"
+					connection = "scm:git:git@github.com:falkreon/TinyBigNumbers.git"
+					developerConnection = "scm:git:git@github.com:falkreon/TinyBigNumbers.git"
+				}
+			}
+		}
+	}
+	
+	repositories {
+		if (project.hasProperty("ossrhUsername")) {
+			maven {
+				def releasesRepoUrl = "https://oss.sonatype.org/service/local/staging/deploy/maven2/"
+				def snapshotsRepoUrl = "https://oss.sonatype.org/content/repositories/snapshots/"
+				url = releasesRepoUrl; //version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+				
+				credentials {
+					username = ossrhUsername
+					password = ossrhPassword
+				}
+				
+			}
+		}
+	}
+}
+
+defaultTasks "clean", "build", "sourcesJar";
+
+dependencies {
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1';
+	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine';
+	
+	compileOnly group: "com.google.code.findbugs", name: "jsr305", version: "3.0.2";
+}
+
+signing {
+	if (project.hasProperty("signing.keyId")) {
+		println("Key credentials found. Enabling jar signing.");
+		sign configurations.archives;
+		sign publishing.publications.mavenPrimary
+	} else {
+		println("Skipping jar signing");
+	}
+}
