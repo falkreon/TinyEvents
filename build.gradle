@@ -15,7 +15,7 @@ plugins {
 	id 'java';
 	id 'eclipse';
 	
-	id 'org.cadixdev.licenser' version '0.6.0';
+	id 'org.cadixdev.licenser' version '0.6.1';
 	
 	id 'maven-publish';
 	id 'signing';
@@ -32,7 +32,7 @@ repositories {
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(16)
+		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 
