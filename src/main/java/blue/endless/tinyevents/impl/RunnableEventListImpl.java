@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021 Falkreon (Isaac Ellingson)
+ * Copyright (c) 2021-2023 Falkreon (Isaac Ellingson)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -108,6 +108,13 @@ public final class RunnableEventListImpl implements RunnableEvent {
 				bakedEntries[i] = entries.get(i).handler();
 			}
 		}
+	}
+
+	@Override
+	public void clear() {
+		entries.clear();
+		executorEntries.clear();
+		bakedEntries = null;
 	}
 	
 }

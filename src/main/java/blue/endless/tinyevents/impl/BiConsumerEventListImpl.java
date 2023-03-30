@@ -28,69 +28,70 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.Executor;
-import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
-import blue.endless.tinyevents.ConsumerEvent;
+import blue.endless.tinyevents.BiConsumerEvent;
 
-public class ConsumerEventListImpl<T> implements ConsumerEvent<T> {
+public class BiConsumerEventListImpl<T, U> implements BiConsumerEvent<T, U> {
 
-	private record Entry<T>(Consumer<T> handler, Object key) {};
-	private record ExecutorEntry<T>(Consumer<T> handler, Executor executor, Object key) {};
+	private record Entry<T, U>(BiConsumer<T, U> handler, Object key) {};
+	private record ExecutorEntry<T, U>(BiConsumer<T, U> handler, Executor executor, Object key) {};
 	
-	private List<Entry<T>> entries = new ArrayList<>();
-	private List<ExecutorEntry<T>> executorEntries = new ArrayList<>();
+	private List<Entry<T, U>> entries = new ArrayList<>();
+	private List<ExecutorEntry<T, U>> executorEntries = new ArrayList<>();
 	
-	private Consumer<T>[] bakedEntries = null;
+	private BiConsumer<T, U>[] bakedEntries = null;
 	
 	@Override
-	public void fire(T t) {
+	public void fire(T t, U u) {
 		if (bakedEntries!=null) {
 			for(int i=0; i<bakedEntries.length; i++) {
-				bakedEntries[i].accept(t);
+				bakedEntries[i].accept(t, u);
 			}
 		}
 		
-		if (executorEntries.size()>0) for(ExecutorEntry<T> entry : executorEntries) {
-			entry.executor().execute( ()->entry.handler.accept(t));
+		if (executorEntries.size()>0) for(ExecutorEntry<T, U> entry : executorEntries) {
+			entry.executor().execute( ()->entry.handler.accept(t, u));
 		}
 	}
 
 	@Override
-	public void register(Consumer<T> handler) {
+	public void register(BiConsumer<T, U> handler) {
 		register(handler, handler);
 	}
 
 	@Override
-	public void register(Consumer<T> handler, Object key) {
+	public void register(BiConsumer<T, U> handler, Object key) {
 		entries.add(new Entry<>(handler, key));
 		bake();
 	}
 
 	@Override
-	public void register(Consumer<T> handler, Executor executor) {
+	public void register(BiConsumer<T, U> handler, Executor executor) {
 		register(handler, executor, handler);
 	}
 
 	@Override
-	public void register(Consumer<T> handler, Executor executor, Object key) {
-		executorEntries.add(new ExecutorEntry<T>(handler, executor, key));
+	public void register(BiConsumer<T, U> handler, Executor executor, Object key) {
+		executorEntries.add(new ExecutorEntry<T, U>(handler, executor, key));
+		
 	}
 
 	@Override
 	public void unregister(Object key) {
-		Iterator<Entry<T>> i = entries.iterator();
+		Iterator<Entry<T, U>> i = entries.iterator();
 		boolean rebake = false;
 		while(i.hasNext()) {
-			Entry<T> entry = i.next();
+			Entry<T, U> entry = i.next();
 			if (entry.key()==key) {
 				i.remove();
 				rebake = true;
 			}
 		}
 		
-		Iterator<ExecutorEntry<T>> j = executorEntries.iterator();
+		Iterator<ExecutorEntry<T, U>> j = executorEntries.iterator();
 		while(j.hasNext()) {
-			ExecutorEntry<T> entry = j.next();
+			ExecutorEntry<T, U> entry = j.next();
 			if (entry.key()==key) {
 				j.remove();
 			}
@@ -104,7 +105,7 @@ public class ConsumerEventListImpl<T> implements ConsumerEvent<T> {
 		if (entries.size()==0) {
 			bakedEntries = null;
 		} else {
-			bakedEntries = new Consumer[entries.size()]; //Cannot make a generic array but that's never stopped me before
+			bakedEntries = new BiConsumer[entries.size()]; //Cannot make a generic array but that's never stopped me before
 			for(int i=0; i<entries.size(); i++) {
 				bakedEntries[i] = entries.get(i).handler();
 			}
