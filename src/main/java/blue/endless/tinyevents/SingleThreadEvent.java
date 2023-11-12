@@ -4,10 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.BiFunction;
 import java.util.function.BinaryOperator;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.function.UnaryOperator;
 
 /**
  * Represents a high-performance event which cannot be safely accessed off-thread.
@@ -146,5 +148,93 @@ public class SingleThreadEvent<T> {
 					return result;
 				}
 			);
+	}
+	
+	/**
+	 * Creates an event that Functions may respond to. All the responders are turned into a single value by recursively
+	 * applying the reducer function for every two values returned.
+	 * @param <T> The type of data that event-handlers will receive
+	 * @param <U> The type of data that event-handlers will provide
+	 * @param reducer a function which will turn responses into a single value
+	 * @return the new Event
+	 */
+	public static <T, U> SingleThreadEvent<Function<T, U>> function(BinaryOperator<U> reducer) {
+		return new SingleThreadEvent<Function<T, U>>((handlers) -> (T t) -> {
+			boolean firstLoop = true;
+			U result = null;
+			for(Entry<Function<T, U>> entry : handlers) {
+				U cur = entry.handler.apply(t);
+				if (firstLoop) {
+					result = cur;
+					firstLoop = false;
+				} else {
+					reducer.apply(result, cur);
+				}
+			}
+			
+			return result;
+		});
+	}
+	
+	/**
+	 * Creates an event that Functions may respond to. All the responders are turned into a single value by recursively
+	 * applying the reducer function for every two values returned.
+	 * @param <T> The type of the first argument that event-handlers will receive
+	 * @param <U> The type of the second argument that event-handlers will receive
+	 * @param <V> The type of data that event-handlers will provide
+	 * @param reducer a function which will turn responses into a single value
+	 * @return the new Event
+	 */
+	public static <T, U, V> SingleThreadEvent<BiFunction<T, U, V>> biFunction(BinaryOperator<V> reducer) {
+		return new SingleThreadEvent<BiFunction<T, U, V>>((handlers) -> (T t, U u) -> {
+			boolean firstLoop = true;
+			V result = null;
+			for(Entry<BiFunction<T, U, V>> entry : handlers) {
+				V cur = entry.handler.apply(t, u);
+				if (firstLoop) {
+					result = cur;
+					firstLoop = false;
+				} else {
+					reducer.apply(result, cur);
+				}
+			}
+			
+			return result;
+		});
+	}
+	
+	/**
+	 * Returns an event that allows handlers to "progressively enhance" the value passed in by returning a modified version.
+	 * @param <T> The type of data that will be modified by event-handlers
+	 * @return the new Event
+	 */
+	public static <T> SingleThreadEvent<UnaryOperator<T>> progressiveFunction() {
+		return new SingleThreadEvent<UnaryOperator<T>>((handlers) -> (T t) -> {
+			T result = t;
+			
+			for(Entry<UnaryOperator<T>> entry : handlers) {
+				result = entry.handler.apply(result);
+			}
+			
+			return result;
+		});
+	}
+	
+	/**
+	 * Returns an event that allows handlers to "progressively enhance" their first argument by returning a modified version.
+	 * @param <T> The type of data that will be modified by event-handlers
+	 * @param <U> The type of the second argument that event-handlers will receive
+	 * @return The fully-modified value.
+	 */
+	public static <T, U> SingleThreadEvent<BiFunction<T, U, T>> progressiveBiFunction() {
+		return new SingleThreadEvent<BiFunction<T, U, T>>((handlers) -> (T t, U u) -> {
+			T result = t;
+			
+			for(Entry<BiFunction<T, U, T>> entry : handlers) {
+				result = entry.handler.apply(result, u);
+			}
+			
+			return result;
+		});
 	}
 }
