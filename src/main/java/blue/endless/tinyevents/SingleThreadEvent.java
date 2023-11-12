@@ -22,7 +22,7 @@ public class SingleThreadEvent<T> {
 	 * Creates a new event using the specified invoker factory.
 	 * @param invokerFactory A function which will be called to turn a list of handlers into an invoker object.
 	 */
-	protected SingleThreadEvent(Function<List<Entry<T>>, T> invokerFactory) {
+	public SingleThreadEvent(Function<List<Entry<T>>, T> invokerFactory) {
 		this.invoker = invokerFactory.apply(handlers);
 	}
 	
