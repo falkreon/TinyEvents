@@ -88,7 +88,7 @@ public class SingleThreadEvent<T> {
 	
 	/**
 	 * Creates an event that Consumer event-handlers may be registered to.
-	 * @param <T> The type of data which event-handlers will receive (consume)
+	 * @param <X> The type of data which event-handlers will receive (consume)
 	 * @return the new Event
 	 */
 	public static <X> SingleThreadEvent<Consumer<X>> consumer() {
@@ -103,8 +103,8 @@ public class SingleThreadEvent<T> {
 	
 	/**
 	 * Creates an event that BiConsumer event-handlers may be registered to.
-	 * @param <T> The type of the first parameter that event-handlers will receive
-	 * @param <U> The type of the second parameter that event-handlers will receive
+	 * @param <X> The type of the first parameter that event-handlers will receive
+	 * @param <Y> The type of the second parameter that event-handlers will receive
 	 * @return the new Event
 	 */
 	public static <X, Y> SingleThreadEvent<BiConsumer<X, Y>> biConsumer() {
