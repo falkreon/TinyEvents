@@ -122,7 +122,7 @@ public class ThreadSafeEvent<T> {
 	
 	/**
 	 * Creates an event that Runnable event-handlers may be registered to. Execution of event-handlers will be scheduled
-	 * on the provided Executor, which can be a ThreadExecutorService to run multiple handlers at the same time.
+	 * on the provided Executor, which can be a ScheduledExecutorService to run multiple handlers at the same time.
 	 * @param executor an object which will be used to schedule event-handler execution
 	 * @return the new Event
 	 */
@@ -135,7 +135,8 @@ public class ThreadSafeEvent<T> {
 	}
 	
 	/**
-	 * Creates an event that Consumer event-handlers may be registered to.
+	 * Creates an event that Consumer event-handlers may be registered to. Execution of event-handlers will be scheduled
+	 * on the provided Executor, which can be a ScheduledExecutorService to run multiple handlers at the same time.
 	 * @param <T> The type of data which event-handlers will receive (consume)
 	 * @return the new Event
 	 */
@@ -148,7 +149,9 @@ public class ThreadSafeEvent<T> {
 	}
 	
 	/**
-	 * Creates an event that BiConsumer event-handlers may be registered to.
+	 * Creates an event that BiConsumer event-handlers may be registered to. Execution of event-handlers will be
+	 * scheduled on the provided Executor, which can be a ScheduledExecutorService to run multiple handlers at the same
+	 * time.
 	 * @param <T> The type of the first parameter that event-handlers will receive
 	 * @param <U> The type of the second parameter that event-handlers will receive
 	 * @return the new Event
