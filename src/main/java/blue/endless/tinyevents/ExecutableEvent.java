@@ -76,6 +76,14 @@ public class ExecutableEvent<T> {
 		handlers.removeIf(it -> Objects.equals(key, it.key));
 	}
 	
+	/**
+	 * Unregisters all event-handlers. Must be called on the same thread that the event was created on.
+	 */
+	public void clear() {
+		checkThread();
+		handlers.clear();
+	}
+	
 	private void checkThread() {
 		if (!Objects.equals(thread, Thread.currentThread())) throw new IllegalStateException("Must be executed on the thread that the event was created on");
 	}

@@ -80,6 +80,16 @@ public class ThreadSafeEvent<T> {
 		}
 	}
 	
+	@SuppressWarnings("unchecked")
+	public void clear() {
+		synchronized(this) {
+			handlers.clear();
+			bakedHandlers = (Entry<T>[]) new Entry[0];
+			invoker = invokerFactory.apply(bakedHandlers);
+		}
+	}
+	
+	
 	
 	/**
 	 * Creates an event that Runnable event-handlers may be registered to.

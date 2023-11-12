@@ -63,6 +63,13 @@ public class SingleThreadEvent<T> {
 		handlers.removeIf(it -> Objects.equals(key, it.key));
 	}
 	
+	/**
+	 * Unregisters all event-handlers.
+	 */
+	public void clear() {
+		handlers.clear();
+	}
+	
 	
 	
 	/**
