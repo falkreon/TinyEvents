@@ -16,9 +16,10 @@ import java.util.function.Function;
 public class ThreadSafeEvent<T> {
 	public static record Entry<T>(T handler, Object key) {}
 	
+	private final Object mutex = new Object();
 	private final Function<Entry<T>[], T> invokerFactory;
 	private T invoker;
-	/** All access should be synchronized on `this` */
+	/** All access should be synchronized on `mutex` */
 	private List<Entry<T>> handlers = new ArrayList<>();
 	/** After creation, each bakedHandlers object remains unmodified */
 	@SuppressWarnings("unchecked")
@@ -59,7 +60,7 @@ public class ThreadSafeEvent<T> {
 	 * @param key an object that can be used to refer to this event-handler when unregistering it. Often a String or other identifier
 	 */
 	public void register(T handler, Object key) {
-		synchronized(this) {
+		synchronized(mutex) {
 			handlers.add(new Entry<>(handler, key));
 			bakedHandlers = handlers.toArray(bakedHandlers);
 			invoker = invokerFactory.apply(bakedHandlers);
@@ -73,7 +74,7 @@ public class ThreadSafeEvent<T> {
 	 *            reference itself. A new, identical lambda will not work.
 	 */
 	public void unregister(Object key) {
-		synchronized(this) {
+		synchronized(mutex) {
 			handlers.removeIf(it -> Objects.equals(key, it.key));
 			bakedHandlers = handlers.toArray(bakedHandlers);
 			invoker = invokerFactory.apply(bakedHandlers);
@@ -82,7 +83,7 @@ public class ThreadSafeEvent<T> {
 	
 	@SuppressWarnings("unchecked")
 	public void clear() {
-		synchronized(this) {
+		synchronized(mutex) {
 			handlers.clear();
 			bakedHandlers = (Entry<T>[]) new Entry[0];
 			invoker = invokerFactory.apply(bakedHandlers);
