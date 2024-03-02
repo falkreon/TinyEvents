@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021-2023 Falkreon (Isaac Ellingson)
+ * Copyright (c) 2021-2024 Falkreon (Isaac Ellingson)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,15 +27,7 @@ package blue.endless.tinyevents;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.BiConsumer;
-import java.util.function.BiFunction;
-import java.util.function.BinaryOperator;
-import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
-
-import blue.endless.tinyevents.function.IntBiConsumer;
 
 /**
  * Represents a high-performance event which cannot be safely accessed off-thread.
@@ -97,8 +89,4 @@ public class Event<T> {
 	public void clear() {
 		handlers.clear();
 	}
-	
-	
-	
-	
 }

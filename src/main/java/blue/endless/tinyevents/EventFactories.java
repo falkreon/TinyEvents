@@ -1,3 +1,27 @@
+/*
+ * MIT License
+ *
+ * Copyright (c) 2021-2024 Falkreon (Isaac Ellingson)
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ */
+
 package blue.endless.tinyevents;
 
 import java.util.function.BiConsumer;
@@ -19,7 +43,6 @@ import java.util.function.IntFunction;
 import java.util.function.IntPredicate;
 import java.util.function.LongBinaryOperator;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 
 import blue.endless.tinyevents.Event.Entry;
 import blue.endless.tinyevents.function.BooleanBinaryOperator;
@@ -399,48 +422,6 @@ public class EventFactories {
 				}
 			);
 	}
-	
-	
-	
-	
-	
-	/**
-	 * Returns an event that allows handlers to "progressively enhance" the value passed in by returning a modified version.
-	 * @param <T> The type of data that will be modified by event-handlers
-	 * @return the new Event
-	 */
-	public static <T> Event<UnaryOperator<T>> progressiveFunction() {
-		return new Event<UnaryOperator<T>>((handlers) -> (T t) -> {
-			T result = t;
-			
-			for(Entry<UnaryOperator<T>> entry : handlers) {
-				result = entry.handler().apply(result);
-			}
-			
-			return result;
-		});
-	}
-	
-	/**
-	 * Returns an event that allows handlers to "progressively enhance" their first argument by returning a modified version.
-	 * @param <T> The type of data that will be modified by event-handlers
-	 * @param <U> The type of the second argument that event-handlers will receive
-	 * @return The fully-modified value.
-	 */
-	public static <T, U> Event<BiFunction<T, U, T>> progressiveBiFunction() {
-		return new Event<BiFunction<T, U, T>>((handlers) -> (T t, U u) -> {
-			T result = t;
-			
-			for(Entry<BiFunction<T, U, T>> entry : handlers) {
-				result = entry.handler().apply(result, u);
-			}
-			
-			return result;
-		});
-	}
-	
-	
-	
 	
 	public static Event<IntBiConsumer> intBiConsumer() {
 		return new Event<IntBiConsumer>(
