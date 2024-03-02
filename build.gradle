@@ -73,6 +73,12 @@ test {
 	useJUnitPlatform();
 }
 
+allprojects {
+	tasks.withType(Javadoc) {
+		options.addStringOption('Xdoclint:none', '-quiet')
+	}
+}
+
 publishing {
 	publications {
 		mavenPrimary(MavenPublication) {
