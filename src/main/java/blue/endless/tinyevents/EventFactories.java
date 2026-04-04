@@ -174,7 +174,7 @@ public class EventFactories {
 						result = cur;
 						firstLoop = false;
 					} else {
-						reducer.apply(result, cur);
+						result = reducer.apply(result, cur);
 					}
 				}
 				
@@ -199,7 +199,7 @@ public class EventFactories {
 						result = cur;
 						firstLoop = false;
 					} else {
-						reducer.apply(result, cur);
+						result = reducer.apply(result, cur);
 					}
 				}
 				
@@ -219,7 +219,7 @@ public class EventFactories {
 						result = cur;
 						firstLoop = false;
 					} else {
-						reducer.applyAsDouble(cur, result);
+						result = reducer.applyAsDouble(cur, result);
 					}
 				}
 				
@@ -239,7 +239,7 @@ public class EventFactories {
 						result = cur;
 						firstLoop = false;
 					} else {
-						reducer.applyAsInt(cur, result);
+						result = reducer.applyAsInt(cur, result);
 					}
 				}
 				
@@ -259,7 +259,7 @@ public class EventFactories {
 						result = cur;
 						firstLoop = false;
 					} else {
-						reducer.applyAsLong(cur, result);
+						result = reducer.applyAsLong(cur, result);
 					}
 				}
 				
@@ -286,7 +286,7 @@ public class EventFactories {
 					result = cur;
 					firstLoop = false;
 				} else {
-					reducer.apply(result, cur);
+					result = reducer.apply(result, cur);
 				}
 			}
 			
@@ -321,7 +321,7 @@ public class EventFactories {
 						result = cur;
 						firstLoop = false;
 					} else {
-						reducer.apply(result, cur);
+						result = reducer.apply(result, cur);
 					}
 				}
 				
@@ -346,7 +346,7 @@ public class EventFactories {
 						result = cur;
 						firstLoop = false;
 					} else {
-						reducer.apply(result, cur);
+						result = reducer.apply(result, cur);
 					}
 				}
 				
