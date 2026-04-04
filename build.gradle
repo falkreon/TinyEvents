@@ -24,7 +24,7 @@ plugins {
 
 group = "blue.endless";
 archivesBaseName = "TinyEvents";
-version = "2.0.0";
+version = "2.1.0";
 
 repositories {
 	mavenCentral()
@@ -32,17 +32,17 @@ repositories {
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(17)
+		languageVersion = JavaLanguageVersion.of(21)
 	}
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
-	classifier = "sources"
+	archiveClassifier = "sources"
 	from sourceSets.main.allSource
 }
 
 task javadocJar(type: Jar, dependsOn: javadoc) {
-	classifier = "javadoc"
+	archiveClassifier = "javadoc"
 	from javadoc.destinationDir
 }
 
@@ -56,7 +56,7 @@ tasks.withType(JavaCompile) {
 }
 
 license {
-	//header = project.file('HEADER')
+	header = project.file('HEADER')
 	
 	include '**/*.java'
 }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2021-2024 Falkreon (Isaac Ellingson)
+ * Copyright (c) 2021-2026 Falkreon (Isaac Ellingson)
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -56,7 +56,7 @@ public class ChainEventFactories {
 	public static final EventFactory<LongUnaryOperator>     MODIFY_LONG   = ChainEventFactories::longUnaryOperator;
 	public static final EventFactory<DoubleUnaryOperator>   MODIFY_DOUBLE = ChainEventFactories::doubleUnaryOperator;
 	public static final EventFactory<BooleanUnaryOperator>  MODIFY_BOOLEAN= ChainEventFactories::booleanUnaryOperator;
-	public static final EventFactory<UnaryOperator<String>> MODIFY_STRING = () -> unaryOperator();
+	public static final EventFactory<UnaryOperator<String>> MODIFY_STRING = ChainEventFactories::unaryOperator;
 	
 	/**
 	 * Creates an Event which takes in a single value and modifies it.
