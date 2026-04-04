@@ -6,16 +6,17 @@ buildscript {
 			url = "https://oss.sonatype.org/content/repositories/snapshots/";
 		}
 		maven {
-			url "https://plugins.gradle.org/m2/";
+			url = "https://plugins.gradle.org/m2/";
 		}
 	}
 }
 
 plugins {
 	id 'java';
+	id 'base';
 	id 'eclipse';
 	
-	id 'org.cadixdev.licenser' version '0.6.1';
+	id 'dev.yumi.gradle.licenser' version '2.2.+';
 	
 	id 'maven-publish';
 	id 'signing';
@@ -23,8 +24,12 @@ plugins {
 
 
 group = "blue.endless";
-archivesBaseName = "TinyEvents";
 version = "2.1.0";
+
+base {
+	archivesName = "TinyEvents";
+}
+
 
 repositories {
 	mavenCentral()
@@ -56,9 +61,8 @@ tasks.withType(JavaCompile) {
 }
 
 license {
-	header = project.file('HEADER')
-	
-	include '**/*.java'
+	rule(file("LICENSE"))
+	include('**/*.java')
 }
 
 jar {
@@ -84,9 +88,9 @@ publishing {
 		mavenPrimary(MavenPublication) {
 			from components.java;
 
-			groupId project.group;
-			artifactId "TinyEvents";
-			version project.version+versionSuffix;
+			groupId = project.group;
+			artifactId = "TinyEvents";
+			version = project.version+versionSuffix;
 			artifact sourcesJar;
 			artifact javadocJar;
 			
@@ -140,8 +144,9 @@ publishing {
 defaultTasks "clean", "build", "sourcesJar";
 
 dependencies {
-	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.1';
-	testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine';
+	testImplementation(platform("org.junit:junit-bom:6.0.3"))
+	testImplementation("org.junit.jupiter:junit-jupiter")
+	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	
 	compileOnly group: "com.google.code.findbugs", name: "jsr305", version: "3.0.2";
 }

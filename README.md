@@ -61,3 +61,34 @@ An invokerFactory for `Consumer<X>` might look like:
 
 
 If this looks too complicated, that's because it is. Unfortunately, I can't auto-generate an invoker without resorting to the reflection and boxing that I'm trying to avoid. Feel free to use the builtins, or ask for help on the [Jankson discord](https://discord.gg/tV6FYXE8QH)
+
+
+## Contributing
+
+Pull requests are encouraged! Feel free to ping me in the Jankson discord and we can match your goals against the library's roadmap, and discuss a plan of action so your PR can be set up for success.
+
+# Code Style
+
+Generally, code in TinyEvents conforms to the Google Code Style, but with the following notable changes:
+
+- Tabs are used for indentation, with spaces optionally used to align items within the same indent level. As a rule of thumb, if you change the tab width and some alignment breaks, you did it wrong. Space-based alginment is governed entirely by Google's style rules.
+- Whitespace occurs on blank lines in the code that conforms to the indent level where the blank line is. It is not required to *create* such whitespace, but removing it is forbidden in PRs, except when those PRs are exclusively about formatting (and even those are likely to fail!).
+- Use of the `var` keyword is forbidden except in test code. `var` can be a very useful tool for readability, especially when complex generics really pile up, but mixing var and non-var code can also cause a readability disaster. Var works best when you go all-in on it, and I'm not that sort of programmer.
+- Star imports are forbidden, except for module imports. Star imports have a high risk of foreign code unintentionally changing how this code compiles.
+- When you contribute code to TinyEvents, you permit your code to be provided under the MIT License just like everything else here.
+
+# AI Policy
+
+AI code contribution of any kind is strictly forbidden. If AI usage is suspected in a PR's code or comments it will be closed immediately at the sole discretion of the maintainer(s).
+
+Copyright claims are a fundamental part of FOSS licenses. As AI output cannot be copyrighted, my view is that it is fundamentally incompatible with the MIT License. Additionally, even if you altered the AI output in such a way that the combined work product is copyrightable, you are required to disclaim the AI-generated portion. This creates a licensing minefield where it's difficult to reason about what parts of the work are copyrighted - and therefore FOSS - and what parts are not.
+
+Additionally, programming models are trained unethically on stolen code, their base model training is environmentally unfriendly, and the output, so far, is extremely substandard. So even if the licensing problems were overcome, for ethical and practical reasons AI will still be forbidden here.
+
+I shouldn't really need to say it, but permission is EXPRESSLY DENIED to use this code for AI training. This usage is NOT permitted by the MIT License, because you do not include the MIT copyright and permission notice in copies of the Software, and when the model recreates substantial portions of the Software (which it can), it does not recreate the notice.
+
+# Conduct
+
+Please refer to the [Contributor Covenant 3.0 Code of Conduct](https://www.contributor-covenant.org/version/3/0/code_of_conduct/).
+
+We're all here to make, improve, and use good software. For that we need safety and mutual respect. Be kind to each other. Use peoples' preferred pronouns. Participate in good faith. Again, I shouldn't need to say any of this.
