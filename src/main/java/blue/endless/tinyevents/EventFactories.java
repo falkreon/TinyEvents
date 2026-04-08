@@ -60,7 +60,7 @@ public class EventFactories {
 	public static final EventFactory<Runnable> RUNNABLE = EventFactories::runnable;
 	
 	/** A factory producing events whose handlers receive one String value */
-	public static final EventFactory<Consumer<String>> STRING_CONSUMER = () -> EventFactories.consumer();
+	public static final EventFactory<Consumer<String>> STRING_CONSUMER = EventFactories::consumer;
 	/** A factory producing events whose handlers receive one double value */
 	public static final EventFactory<DoubleConsumer>   DOUBLE_CONSUMER = EventFactories::doubleConsumer;
 	/** A factory producing events whose handlers receive one int value */
@@ -68,7 +68,10 @@ public class EventFactories {
 	/** A factory producing events whose handlers receive one long value */
 	public static final EventFactory<LongConsumer>     LONG_CONSUMER   = EventFactories::longConsumer;
 	
-	/** A factory for String-Supplier events where handlers that are registered later override earlier ones. */
+	/**
+	 * A factory for String-Supplier events where handlers that are registered later override earlier ones.
+	 * Note: If no handler responds to this event, the invoker will return null.
+	 */
 	public static final EventFactory<Supplier<String>> STRING_SUPPLIER      = EventFactories::supplier;
 	/** A factory for boolean-Supplier events where all handlers must vote "true" to yield true. */
 	public static final EventFactory<BooleanSupplier>  BOOLEAN_SUPPLIER_AND = () -> EventFactories.booleanSupplier(() -> false, BooleanBinaryOperator.AND);
@@ -76,14 +79,12 @@ public class EventFactories {
 	public static final EventFactory<BooleanSupplier>  BOOLEAN_SUPPLIER_OR  = () -> EventFactories.booleanSupplier(() -> false, BooleanBinaryOperator.OR);
 	
 	/** A factory for double-Supplier events where handlers' results are summed to create the event-result */
-	public static final EventFactory<DoubleSupplier>   DOUBLE_SUPPLIER_CUMULATIVE     = () -> EventFactories.doubleSupplier(0D, (DoubleBinaryOperator) ((a, b) -> a + b));
-	/**
-	 * A factory for double-Supplier events where handlers' results are multiplied to create the event-result.
-	 */
-	public static final EventFactory<DoubleSupplier>   DOUBLE_SUPPLIER_MULTIPLICATIVE = () -> EventFactories.doubleSupplier(1.0D, (DoubleBinaryOperator) ((a, b) -> a * b));
+	public static final EventFactory<DoubleSupplier>   DOUBLE_SUPPLIER_CUMULATIVE     = () -> EventFactories.doubleSupplier(() -> 0D, (DoubleBinaryOperator) ((a, b) -> a + b));
+	/** A factory for double-Supplier events where handlers' results are multiplied to create the event-result. */
+	public static final EventFactory<DoubleSupplier>   DOUBLE_SUPPLIER_MULTIPLICATIVE = () -> EventFactories.doubleSupplier(() -> 1.0D, (DoubleBinaryOperator) ((a, b) -> a * b));
 	
-	public static final EventFactory<IntSupplier>      INT_SUPPLIER_CUMULATIVE        = () -> EventFactories.intSupplier((IntBinaryOperator) ((a, b) -> a + b));
-	public static final EventFactory<LongSupplier>     LONG_SUPPLIER_CUMULATIVE       = () -> EventFactories.longSupplier((LongBinaryOperator) ((a, b) -> a + b));
+	public static final EventFactory<IntSupplier>      INT_SUPPLIER_CUMULATIVE        = () -> EventFactories.intSupplier(() -> 0, (IntBinaryOperator) ((a, b) -> a + b));
+	public static final EventFactory<LongSupplier>     LONG_SUPPLIER_CUMULATIVE       = () -> EventFactories.longSupplier(() -> 0, (LongBinaryOperator) ((a, b) -> a + b));
 	
 	public static final EventFactory<DoublePredicate>  DOUBLE_PREDICATE_AND = () -> EventFactories.doublePredicate(BooleanBinaryOperator.AND);
 	public static final EventFactory<DoublePredicate>  DOUBLE_PREDICATE_OR  = () -> EventFactories.doublePredicate(BooleanBinaryOperator.OR);
@@ -175,7 +176,7 @@ public class EventFactories {
 	 * Creates an event which when fired, starts with an initial value, and is then progressively combined with
 	 * handler-results using a reducer function to create an event-result.
 	 * @param <X> The type of object to return
-	 * @param initialValue the initial value, which will be returned if no handlers are present.
+	 * @param initialValue a supplier for the initial value, which will be returned if no handlers are present.
 	 * @param reducer a function to combine the initial value and the handler-results to produce an event-result.
 	 * @return the new Event
 	 */
@@ -183,8 +184,8 @@ public class EventFactories {
 		return new Event<Supplier<X>>(
 			(handlers) -> () -> {
 				X result = initialValue.get();
-				for(Entry<Supplier<X>> handler : handlers) {
-					result = reducer.apply(result, handler.handler().get());
+				for(Entry<Supplier<X>> entry : handlers) {
+					result = reducer.apply(result, entry.handler().get());
 				}
 				
 				return result;
@@ -193,9 +194,9 @@ public class EventFactories {
 	}
 	
 	/**
-	 * Creates an Event that handlers can use to vote on a single boolean-valued result. False is returned if no
-	 * suppliers are registered.
-	 * @param initialValue the initial value, which will be returned if no handlers are present.
+	 * Creates an event which when fired, starts with an initial value, and is then progressively combined with "votes"
+	 * from handlers using a reducer function to create an event-result.
+	 * @param initialValue a supplier for the initial value, which will be returned if no handlers are present.
 	 * @param reducer a function to combine the initial value and the handler-results to produce an event-result.
 	 * @return the new Event
 	 */
@@ -203,8 +204,8 @@ public class EventFactories {
 		return new Event<>(
 			(handlers) -> () -> {
 				boolean result = initialValue.getAsBoolean();
-				for(Entry<BooleanSupplier> handler : handlers) {
-					reducer.apply(result, handler.handler().getAsBoolean());
+				for(Entry<BooleanSupplier> entry : handlers) {
+					result = reducer.apply(result, entry.handler().getAsBoolean());
 				}
 				
 				return result;
@@ -213,18 +214,18 @@ public class EventFactories {
 	}
 	
 	/**
-	 * Creates an Event that handlers can use to supply a double-valued result.
-	 * @param sentinel A value that should be returned if no handlers are registered
-	 * @param reducer A function that combines multiple handler-results into a single event-result
+	 * Creates an event which when fired, starts with an initial value, and is then progressively combined with
+	 * handler-results using a reducer function to create an event-result.
+	 * @param initialValue a supplier for the initial value, which will be returned if no handlers are present.
+	 * @param reducer a function to combine the initial value and the handler-results to produce an event-result.
 	 * @return the new Event
 	 */
-	public static Event<DoubleSupplier> doubleSupplier(double sentinel, DoubleBinaryOperator reducer) {
+	public static Event<DoubleSupplier> doubleSupplier(DoubleSupplier initialValue, DoubleBinaryOperator reducer) {
 		return new Event<>(
 			(handlers) -> () -> {
-				double result = sentinel;
-				for(int i=0; i<handlers.size(); i++) {
-					double cur = handlers.get(i).handler().getAsDouble();
-					result = (i==0) ? cur : reducer.applyAsDouble(result, cur);
+				double result = initialValue.getAsDouble();
+				for(Entry<DoubleSupplier> entry : handlers) {
+					result = reducer.applyAsDouble(result, entry.handler().getAsDouble());
 				}
 				
 				return result;
@@ -233,17 +234,18 @@ public class EventFactories {
 	}
 	
 	/**
-	 * Creates an event that handlers can use to supply an int-valued result.
-	 * @param reducer A function that combines multiple handler-results into a single event-result
+	 * Creates an event which when fired, starts with an initial value, and is then progressively combined with
+	 * handler-results using a reducer function to create an event-result.
+	 * @param initialValue a supplier for the initial value, which will be returned if no handlers are present.
+	 * @param reducer a function to combine the initial value and the handler-results to produce an event-result.
 	 * @return the new Event
 	 */
-	public static Event<IntSupplier> intSupplier(IntBinaryOperator reducer) {
+	public static Event<IntSupplier> intSupplier(IntSupplier initialValue, IntBinaryOperator reducer) {
 		return new Event<>(
 				(handlers) -> () -> {
-					int result = 0;
-					for(int i=0; i<handlers.size(); i++) {
-						int cur = handlers.get(i).handler().getAsInt();
-						result = (i==0) ? cur : reducer.applyAsInt(result, cur);
+					int result = initialValue.getAsInt();
+					for(Entry<IntSupplier> entry : handlers) {
+						result = reducer.applyAsInt(result, entry.handler().getAsInt());
 					}
 					
 					return result;
@@ -252,17 +254,18 @@ public class EventFactories {
 	}
 	
 	/**
-	 * Creates an event that handlers can use to supply an int-valued result.
-	 * @param reducer A function that combines multiple handler-results into a single event-result
+	 * Creates an event which when fired, starts with an initial value, and is then progressively combined with
+	 * handler-results using a reducer function to create an event-result.
+	 * @param initialValue a supplier for the initial value, which will be returned if no handlers are present.
+	 * @param reducer a function to combine the initial value and the handler-results to produce an event-result.
 	 * @return the new Event
 	 */
-	public static Event<LongSupplier> longSupplier(LongBinaryOperator reducer) {
+	public static Event<LongSupplier> longSupplier(LongSupplier initialValue, LongBinaryOperator reducer) {
 		return new Event<>(
 				(handlers) -> () -> {
-					long result = 0;
-					for(int i=0; i<handlers.size(); i++) {
-						long cur = handlers.get(i).handler().getAsLong();
-						result = (i==0) ? cur : reducer.applyAsLong(result, cur);
+					long result = initialValue.getAsLong();
+					for(Entry<LongSupplier> entry : handlers) {
+						result = reducer.applyAsLong(result, entry.handler().getAsLong());
 					}
 					
 					return result;
@@ -271,20 +274,20 @@ public class EventFactories {
 	}
 	
 	/**
-	 * Creates an event that Functions may respond to. All the responders are turned into a single value by recursively
-	 * applying the reducer function for every two values returned.
+	 * Creates an event which starts with an initial function application, which is then progressively combined with the
+	 * application of each handler Function using a reducer function to create an event-result.
 	 * @param <T> The type of data that event-handlers will receive
 	 * @param <U> The type of data that event-handlers will provide
-	 * @param reducer a function which will turn responses into a single value
+	 * @param initialValue a supplier for the iniitial result, which will be the start of the function chain
+	 * @param reducer a function which will turn the initial result and handler results into a single event-result.
 	 * @return the new Event
 	 */
-	public static <T, U> Event<Function<T, U>> function(BinaryOperator<U> reducer) {
+	public static <T, U> Event<Function<T, U>> function(Function<T, U> initialValue, BinaryOperator<U> reducer) {
 		return new Event<>(
 			(handlers) -> (T t) -> {
-				U result = null;
-				for(int i=0; i<handlers.size(); i++) {
-					U cur = handlers.get(i).handler().apply(t);
-					result = (i==0) ? cur : reducer.apply(result, cur);
+				U result = initialValue.apply(t);
+				for(Entry<Function<T, U>> entry : handlers) {
+					result = reducer.apply(result, entry.handler().apply(t));
 				}
 				
 				return result;
@@ -293,18 +296,19 @@ public class EventFactories {
 	}
 	
 	/**
-	 * Creates an event that receives a double value and produces a reference-typed result.
-	 * @param <X> The "result type" for the Event to create
-	 * @param reducer A function that turns multiple handler-results into a single event-result
+	 * Creates an event which starts with an initial function application, which is then progressively combined with the
+	 * application of each handler function using a reducer function to create an event-result.
+	 * @param <X> The type of data that event-handlers produce
+	 * @param initialValue a supplier for the iniitial result, which will be the start of the function chain
+	 * @param reducer a function which will turn the initial result and handler results into a single event-result.
 	 * @return the new Event
 	 */
-	public static <X> Event<DoubleFunction<X>> doubleFunction(BinaryOperator<X> reducer) {
+	public static <X> Event<DoubleFunction<X>> doubleFunction(DoubleFunction<X> initialValue, BinaryOperator<X> reducer) {
 		return new Event<>(
 			(handlers) -> (double value) -> {
-				X result = null;
-				for(int i=0; i<handlers.size(); i++) {
-					X cur = handlers.get(i).handler().apply(value);
-					result = (i==0) ? cur : reducer.apply(result, cur);
+				X result = initialValue.apply(value);
+				for(Entry<DoubleFunction<X>> entry : handlers) {
+					result = reducer.apply(result, entry.handler().apply(value));
 				}
 				
 				return result;
@@ -313,18 +317,19 @@ public class EventFactories {
 	}
 	
 	/**
-	 * Creates an event that receives an integer value and produces a reference-typed result.
-	 * @param <X> The "result type" for the Event to create
-	 * @param reducer A function that turns multiple handler-results into a single event-result
+	 * Creates an event which starts with an initial function application, which is then progressively combined with the
+	 * application of each handler function using a reducer function to create an event-result.
+	 * @param <X> The type of data that event-handlers produce
+	 * @param initialValue a supplier for the iniitial result, which will be the start of the function chain
+	 * @param reducer a function which will turn the initial result and handler results into a single event-result.
 	 * @return the new Event
 	 */
-	public static <X> Event<IntFunction<X>> intFunction(BinaryOperator<X> reducer) {
+	public static <X> Event<IntFunction<X>> intFunction(IntFunction<X> initialValue, BinaryOperator<X> reducer) {
 		return new Event<>(
 			(handlers) -> (int value) -> {
-				X result = null;
-				for(int i=0; i<handlers.size(); i++) {
-					X cur = handlers.get(i).handler().apply(value);
-					result = (i==0) ? cur : reducer.apply(result, cur);
+				X result = initialValue.apply(value);
+				for(Entry<IntFunction<X>> entry : handlers) {
+					result = reducer.apply(result, entry.handler().apply(value));
 				}
 				
 				return result;
@@ -333,18 +338,19 @@ public class EventFactories {
 	}
 	
 	/**
-	 * Creates an event that receives a long value and produces a reference-typed result.
-	 * @param <X> The "result type" for the Event to create
-	 * @param reducer A function that turns multiple handler-results into a single event-result
+	 * Creates an event which starts with an initial function application, which is then progressively combined with the
+	 * application of each handler function using a reducer function to create an event-result.
+	 * @param <X> The type of data that event-handlers produce
+	 * @param initialValue a supplier for the iniitial result, which will be the start of the function chain
+	 * @param reducer a function which will turn the initial result and handler results into a single event-result.
 	 * @return the new Event
 	 */
-	public static <X> Event<LongFunction<X>> longFunction(BinaryOperator<X> reducer) {
+	public static <X> Event<LongFunction<X>> longFunction(LongFunction<X> initialValue, BinaryOperator<X> reducer) {
 		return new Event<>(
 			(handlers) -> (long value) -> {
-				X result = null;
-				for(int i=0; i<handlers.size(); i++) {
-					X cur = handlers.get(i).handler().apply(value);
-					result = (i==0) ? cur : reducer.apply(result, cur);
+				X result = initialValue.apply(value);
+				for(Entry<LongFunction<X>> entry : handlers) {
+					result = reducer.apply(result, entry.handler().apply(value));
 				}
 				
 				return result;

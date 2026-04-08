@@ -41,7 +41,7 @@ public class TestFactoryEvents {
 	 * </ul>
 	 */
 	@Test
-	public void testSupplierOverrideBehavior() {
+	public void testSupplierMultiHandler() {
 		var booleanSupplier = EventFactories.BOOLEAN_SUPPLIER_OR.create();
 		booleanSupplier.register(() -> true);
 		booleanSupplier.register(() -> false);
@@ -61,6 +61,38 @@ public class TestFactoryEvents {
 		doubleSupplier.register(() -> 2.0D);
 		doubleSupplier.register(() -> 3.0D);
 		Assertions.assertEquals(5.0D, doubleSupplier.invoker().getAsDouble(), MIN_ACCURACY);
+		
+		var intSupplier = EventFactories.INT_SUPPLIER_CUMULATIVE.create();
+		intSupplier.register(() -> 2);
+		intSupplier.register(() -> 3);
+		Assertions.assertEquals(5, intSupplier.invoker().getAsInt());
+		
+		var longSupplier = EventFactories.LONG_SUPPLIER_CUMULATIVE.create();
+		longSupplier.register(() -> 2L);
+		longSupplier.register(() -> 3L);
+		Assertions.assertEquals(5L, longSupplier.invoker().getAsLong());
+	}
+	
+	/**
+	 * Tests supplier event behavior when no handlers are registered. In particular, the edge case that the
+	 * STRING_SUPPLIER returns null if no handlers are registered.
+	 */
+	@Test
+	public void testNonRegistration() {
+		var booleanSupplier = EventFactories.BOOLEAN_SUPPLIER_OR.create();
+		Assertions.assertEquals(false, booleanSupplier.invoker().getAsBoolean());
+		
+		var stringSupplier = EventFactories.STRING_SUPPLIER.create();
+		Assertions.assertEquals(null, stringSupplier.invoker().get());
+		
+		var doubleSupplier = EventFactories.DOUBLE_SUPPLIER_MULTIPLICATIVE.create();
+		Assertions.assertEquals(1.0D, doubleSupplier.invoker().getAsDouble(), MIN_ACCURACY);
+		
+		var intSupplier = EventFactories.INT_SUPPLIER_CUMULATIVE.create();
+		Assertions.assertEquals(0, intSupplier.invoker().getAsInt());
+		
+		var longSupplier = EventFactories.LONG_SUPPLIER_CUMULATIVE.create();
+		Assertions.assertEquals(0L, longSupplier.invoker().getAsLong());
 	}
 	
 	/**
